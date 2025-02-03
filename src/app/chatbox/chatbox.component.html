@@ -1,0 +1,7 @@
+<div class="chatbox">
+    <div #scrollContainer class="message-container">
+      <div *ngFor="let message of messages" [ngClass]="{'sender': message.sender === 'user', 'receiver': message.sender === 'bot'}" class="message">
+        <p>{{ message.text }}</p>
+      </div>
+    </div>
+</div>
