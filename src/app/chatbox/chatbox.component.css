@@ -21,6 +21,10 @@
     overflow-y: scroll;
     height: 100%;
  }
+
+ .message-container p{
+    margin-bottom: 0;
+ }
   
 .message {
     max-width: 70%;
@@ -29,11 +33,22 @@
     margin-bottom: 10px;
     border-radius: 10px;
     position: relative;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+}
+
+img{
+    height: 175px;
+    width: 185px;
+    border-radius: 5px;
+    margin-bottom: 5px;
 }
   
 .sender {
     align-self: flex-end;
     background-color: #dcf8c6;
+    margin-right: 10px;
 }
   
 .receiver {
@@ -42,10 +57,3 @@
     border: 1px solid #ccc;
 }
   
-.timestamp {
-    font-size: 0.8em;
-    color: #999;
-    position: absolute;
-    bottom: -15px;
-    right: 10px;
-}

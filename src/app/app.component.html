@@ -4,12 +4,12 @@
     <div class="agent__left">
       <div *ngIf="uploadedFiles.length > 0" class="activity__container">
         <p style="font-weight: 500;">Activity: </p>
-        <div *ngFor="let file of uploadedFiles">
-          <p>- File Name: {{ file.name }}</p>
-          <p>- File Size: {{ file.size }} bytes</p>
-          <p>- File Type: {{ file.type }}</p>
+        <div>
+          <p>- File Name: {{ uploadedFiles[uploadedFiles.length - 1].name }}</p>
+          <p>- File Size: {{ uploadedFiles[uploadedFiles.length - 1].size }} bytes</p>
+          <p>- File Type: {{ uploadedFiles[uploadedFiles.length - 1].type }}</p>
         </div>
-      </div>
+      </div>      
       <div class="file__container">
         <modus-file-dropzone
           aria-Label="dropzone"
@@ -17,7 +17,7 @@
           dropzone-Height="175px"
           dropzone-Width="400px"
           label="Dropzone Label"
-          multiple="false">
+          multiple="true">
         </modus-file-dropzone>
       </div>
     </div>

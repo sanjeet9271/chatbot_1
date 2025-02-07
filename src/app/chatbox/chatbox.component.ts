@@ -1,4 +1,5 @@
 import { Component,OnInit, Input, OnChanges, SimpleChanges, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import { environment } from '../../enviroments/enviroment';
 
 @Component({
   selector: 'app-chatbox',
@@ -7,7 +8,7 @@ import { Component,OnInit, Input, OnChanges, SimpleChanges, ElementRef, ViewChil
   styleUrl: './chatbox.component.css'
 })
 export class ChatboxComponent implements OnChanges {
-  @Input() inputMessages: { text: string; sender: string; }[] = [];
+  @Input() inputMessages: { text: string; sender: string; image:string; }[] = [];
   @Input() session_id!:string;
   @Input() access_token!:string;
 
@@ -15,13 +16,14 @@ export class ChatboxComponent implements OnChanges {
 
   messages = [   {
       text: 'Hello, how can I help you?',
-      sender: 'bot'
-    }
+      sender: 'bot',
+      image: ''
+    },
   ];
 
 
   //Here goes the whole logic of API
-  assistant_id = "sampleassistant";
+  assistant_id = environment.assistant_id;
 
   headers = {
     "content-type": "application/json",
@@ -47,7 +49,7 @@ export class ChatboxComponent implements OnChanges {
         this.inputMessages = [];
         this.scrollToBottom();
         this.body.message = newMessage.text;
-        if(newMessage.sender==="user"){
+        if(newMessage.sender==="user" && this.body.message != "Image successfully uploaded!"){
           this.makeRequest();
         }
       }
@@ -79,7 +81,7 @@ export class ChatboxComponent implements OnChanges {
       }
 
       const data = await response.json();
-      this.messages = [...this.messages, { text: data.message, sender: 'bot' }];
+      this.messages = [...this.messages, { text: data.message, sender: 'bot',image:'' }];
       this.scrollToBottom();
     } catch (error) {
       console.error('Fetch error:', error);

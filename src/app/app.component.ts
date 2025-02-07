@@ -1,6 +1,8 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ChatboxComponent } from './chatbox/chatbox.component';
+import { environment } from '../enviroments/enviroment';
 import { v4 as uuidv4 } from 'uuid';
+import { AgentServicesService } from '../services/agent-services.service';
 
 @Component({
   selector: 'app-root',
@@ -12,11 +14,11 @@ export class AppComponent implements OnInit {
   title = 'chatbot';
   uploadedFiles: any[] = []; 
   newMessage: string = '';
-  messages: { text: string; sender: string; }[] = [];
+  messages: { text: string; sender: string; image: string; }[] = [];
   session_id!:string;
 
-  access_token = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2lkLnRyaW1ibGUuY29tIiwiZXhwIjoxNzM4MjQwNTA5LCJuYmYiOjE3MzgyMzY5MDksImlhdCI6MTczODIzNjkwOSwianRpIjoiMWJjMzM3MTMzOGUyNDZhZjgxOGY4Y2U4OTQ4MzMyNjIiLCJqd3RfdmVyIjoyLCJzdWIiOiJmZTE5MWIxNy0zNWZlLTQwZTItYmYyNy05NTkwYjE0ZjZmZjMiLCJhdWQiOiJkOWQyMWVkMC0xNGU3LTQ4ODctYmE0Yi1kMTJhYzJmMmY0NjYiLCJpZGVudGl0eV90eXBlIjoidXNlciIsImF1dGhfdGltZSI6MTczODIzNjkwNywiYW1yIjpbImZlZGVyYXRlZCIsIm9rdGFfdHJpbWJsZSIsIm1mYSJdLCJhenAiOiJkOWQyMWVkMC0xNGU3LTQ4ODctYmE0Yi1kMTJhYzJmMmY0NjYiLCJhdF9oYXNoIjoicmJZVVh4QUJuQTFsRlBlbmlGaHhUZyIsImFjY291bnRfaWQiOiJ0cmltYmxlLXBsYWNlaG9sZGVyLW9mLWVtcGxveWVlcyIsImZlZGVyYXRpb25fb3JpZ2luIjoib2t0YV90cmltYmxlIiwiZ2l2ZW5fbmFtZSI6IlNhbmplZXQiLCJmYW1pbHlfbmFtZSI6Ikt1bWFyIiwiZW1haWwiOiJzYW5qZWV0X2t1bWFyQHRyaW1ibGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpY3R1cmUiOiJodHRwczovL3VzLmlkLnRyaW1ibGUuY29tL3VpL3Jlc291cmNlcy9kZWZhdWx0X3Byb2ZpbGUucG5nP3Y9MSIsImRhdGFfcmVnaW9uIjoidXMifQ.DSBTNpyj-oEmUbfMsaS96XX0f2u4fbZFKryCAkbqB3Akw7IvokMLo8M3_2len_XRsENjsBXykL03UZndDBl3NjFSt_MI-YuaDkJ4SB_AGVPst_cka9Qc2im0ZJMpGzhAnBq4ZF5F4MnO2EZkeiK7io4VjVbecC9YlVAmpgFKhsrmxaIAoNuLn6CCIbfSwJwpPUwcJHvngRA2FtA623fU4AdAII-RKWOYYdO5he2sfVVGo_l50UA15Pb0K35nT5vryJNT548Yj0InVV8yW3_hlAQezY2e1sJtSHRPVsYFE88X2dN9QOR-OJ88DiPudQ3rDOU6_GhJChxCejc6WiPHFw";
-  assistant_id = "sampleassistant";
+  access_token:string = environment.access_token;
+  assistant_id:string = environment.assistant_id;
 
   headers = {
     "content-type": "application/json",
@@ -26,6 +28,9 @@ export class AppComponent implements OnInit {
   url = `https://agw.construction-integration.trimble.cloud/trimbledeveloperprogram/assistants/v1/agents/${this.assistant_id}/files`
 
   @ViewChild(ChatboxComponent) chatboxComponent!: ChatboxComponent;
+
+  //Defining the Constructor here
+  constructor(private agentService:AgentServicesService){}
   
   ngOnInit() {
     const dropzone = document.querySelector('modus-file-dropzone');
@@ -36,11 +41,36 @@ export class AppComponent implements OnInit {
         const [files, error] = event.detail;
         if (files) {
           this.uploadedFiles = files; 
-          this.makeRequest(this.uploadedFiles[0])
-          console.log(this.uploadedFiles[0].name)
+          const file = this.uploadedFiles[files.length - 1];
+          // console.log(file);
+          //Here check if filetype is image....if it is then handleImage request function should run else normal makerequest
+          if(file && file.type.startsWith('image/')){
+              const reader = new FileReader();
+              reader.onload = (e:any) =>{
+                let imgSrc = e.target.result;
+                this.messages = [...this.messages,{text: "Image successfully uploaded!", sender: 'user' ,image: imgSrc}];
+                let image_instruction = `Classify the given image into a category like Animal,place,human,plant or whatever category you feel appropriate along with proper reasoning why you feel so. if it doesn't belong to that category, it returns I cannot answer for this kind of image. `;
+                this.chatWithImageAgent(this.assistant_id,imgSrc,this.session_id,image_instruction).then((response:any) =>{
+                  // console.log("The response is",response);
+                  this.messages = [...this.messages,{text: response, sender: 'bot' ,image: ""}];
+                }).catch((error)=>{
+                  console.log("The error occured in image agent!",error)
+                });
+              }
+
+              reader.onerror=(e)=>{
+                console.log("Error processing Image",e)
+              }
+
+              reader.readAsDataURL(file);
+              // this.agentService.GetAssistantResponseForMessageWithImage(this.assistant_id,)
+          }else{
+            this.makeRequest(this.uploadedFiles[0])
+            console.log(this.uploadedFiles[0].name)
+          }
         }
-        console.log(files);
-        console.log(error);
+        // console.log(files);
+        // console.log(error);
       });
     }
   }
@@ -54,7 +84,7 @@ export class AppComponent implements OnInit {
     if ((event instanceof KeyboardEvent && event.key === 'Enter') || event instanceof MouseEvent) {
       event.preventDefault();
       if (this.newMessage.trim()) {
-        this.messages = [...this.messages, { text: this.newMessage, sender: 'user' }];
+        this.messages = [...this.messages, { text: this.newMessage, sender: 'user' ,image: "" }];
         this.newMessage = '';
       }
     }
@@ -89,10 +119,18 @@ export class AppComponent implements OnInit {
   
       const data = await response.json();
       let file_upload_message = "Your file is successfully uploaded!"
-      this.messages = [...this.messages, { text: file_upload_message, sender: 'bot' }];
+      this.messages = [...this.messages, { text: file_upload_message, sender: 'bot',image:"" }];
       console.log(data)
     } catch (err) {
       console.error('Request failed', err);
     }
   }
+
+  private async chatWithImageAgent(agent_name: string, base64_string: string, session_id: string, message: string){
+    base64_string = base64_string.split(',')[1];
+    const image_upload = await this.agentService.UploadImageToAssistant(agent_name, base64_string, session_id);
+    const agent_response = await this.agentService.GetAssistantResponseForMessageWithImage(agent_name, image_upload, session_id, message);
+    return agent_response;
+  }
+  
 }

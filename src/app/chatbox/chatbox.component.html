@@ -1,7 +1,8 @@
 <div class="chatbox">
     <div #scrollContainer class="message-container">
       <div *ngFor="let message of messages" [ngClass]="{'sender': message.sender === 'user', 'receiver': message.sender === 'bot'}" class="message">
-        <p>{{ message.text }}</p>
+        <img *ngIf=" message.image && message.image !== '' " [src]="message.image" alt="Message Image">
+        <p *ngIf="message.text">{{ message.text }}</p>
       </div>
     </div>
 </div>

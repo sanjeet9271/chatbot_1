@@ -20,6 +20,8 @@
     "@angular/router": "^19.0.0",
     "@trimble-oss/modus-icons": "^1.16.0",
     "@trimble-oss/modus-web-components": "^1.1.0",
+    "@types/node": "^22.13.1",
+    "dotenv": "^16.4.7",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "uuid": "^11.0.5",
